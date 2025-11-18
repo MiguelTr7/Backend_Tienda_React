@@ -1,7 +1,5 @@
 package com.example.Tienda_React.service.impl;
 
-
-
 import com.example.Tienda_React.dto.request.LoginRequest;
 import com.example.Tienda_React.dto.request.RegisterRequest;
 import com.example.Tienda_React.dto.response.LoginResponse;
@@ -10,6 +8,7 @@ import com.example.Tienda_React.model.Role;
 import com.example.Tienda_React.model.User;
 import com.example.Tienda_React.repository.RoleRepository;
 import com.example.Tienda_React.repository.UserRepository;
+import com.example.Tienda_React.security.CustomUserDetails;
 import com.example.Tienda_React.security.JwtUtils;
 import com.example.Tienda_React.service.interfaces.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -56,16 +55,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
+
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
         );
 
+        // 🔹 Usuario autenticado con éxito
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        // 🔹 Generar token JWT
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        var userDetails = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-
+        // 🔹 Roles del usuario autenticado
         List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
+                .map(r -> r.getAuthority())
                 .toList();
 
         return new LoginResponse(jwt, userDetails.getUsername(), roles);
