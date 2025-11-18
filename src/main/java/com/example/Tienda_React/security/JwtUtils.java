@@ -1,9 +1,7 @@
 package com.example.Tienda_React.security;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +11,11 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    // 👇 Se ajustan los nombres de las propiedades al application.properties
-    @Value("${app.jwtSecret}")
-    private String jwtSecret;
+    // Clave secreta fija (de al menos 32 caracteres)
+    private final String jwtSecret = "MiClaveSuperSeguraCon32Caracteres123!";
 
-    @Value("${app.jwtExpirationMs}")
-    private int jwtExpirationMs;
+    // Tiempo de expiración en milisegundos (1 día)
+    private final int jwtExpirationMs = 86400000;
 
     // 🔹 Genera el token JWT al iniciar sesión
     public String generateJwtToken(Authentication authentication) {
@@ -32,17 +29,9 @@ public class JwtUtils {
                 .compact();
     }
 
-    // 🔹 Construye la clave secreta a partir del valor Base64 del application.properties
+    // 🔹 Clave secreta directa (sin Base64)
     private Key key() {
-        if (jwtSecret == null || jwtSecret.isEmpty()) {
-            throw new IllegalStateException("❌ Error: 'app.jwtSecret' no está configurado en application.properties");
-        }
-
-        try {
-            return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
-        } catch (Exception e) {
-            throw new IllegalStateException("❌ Error al decodificar 'app.jwtSecret'. Asegúrate de que esté en Base64 válido.", e);
-        }
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
     // 🔹 Extrae el email (username) del token
@@ -55,7 +44,7 @@ public class JwtUtils {
                 .getSubject();
     }
 
-    // 🔹 Valida que el token JWT sea correcto y no haya expirado
+    // 🔹 Valida el token JWT
     public boolean validateJwtToken(String authToken) {
         try {
             Jwts.parserBuilder().setSigningKey(key()).build().parse(authToken);
