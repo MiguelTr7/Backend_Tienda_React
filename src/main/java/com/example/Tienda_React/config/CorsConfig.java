@@ -23,7 +23,7 @@ public class CorsConfig {
         // 🔹 Aquí defines los dominios que pueden consumir tu API
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",                     // para desarrollo local
-                "https://fronted-tienda-react.vercel.app"    // dominio en producción (Vercel)
+                "https://fronted-tienda-react.vercel.app/"    // dominio en producción (Vercel)
         ));
 
         config.setAllowedHeaders(List.of("*"));
