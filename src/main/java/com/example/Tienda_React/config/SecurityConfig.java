@@ -5,7 +5,9 @@ import com.example.Tienda_React.security.JwtAuthTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,24 +39,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        // ✅ Nuevo formato (sin .and(), sin métodos obsoletos)
         http
-                .cors(cors -> cors.disable()) // Ya tienes CorsConfig
+                // ✅ Usar tu CorsConfig (no deshabilitar CORS)
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Rutas públicas
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+
+                        // Productos: GET público
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
+
+                        // Productos: crear/editar/eliminar solo ADMIN
+                        .requestMatchers("/api/productos/**").hasRole("ADMIN")
+
+                        // Cualquier otra cosa: autenticado
                         .anyRequest().authenticated()
                 );
 
-        // Agregar el filtro JWT
+        // Filtro JWT antes de UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
