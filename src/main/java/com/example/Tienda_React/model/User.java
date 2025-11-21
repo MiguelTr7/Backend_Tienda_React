@@ -2,8 +2,6 @@
 
 package com.example.Tienda_React.model;
 
-
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,10 +34,12 @@ public class User {
 
     private String direccion;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "user_roles",
+    // 👇 AQUÍ EL CAMBIO IMPORTANTE
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
     private Set<Role> roles = new HashSet<>();
 }
-
